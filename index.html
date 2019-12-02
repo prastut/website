@@ -83,5 +83,19 @@
         src="/assets/media/bg_compressed.mp4"
       ></video>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function() {
+        function setHeight() {
+          windowHeight = $(window).innerHeight();
+          $("body").css("min-height", windowHeight);
+        }
+        setHeight();
+
+        $(window).resize(function() {
+          setHeight();
+        });
+      });
+    </script>
   </body>
 </html>
