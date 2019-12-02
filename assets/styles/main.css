@@ -10,7 +10,6 @@ html {
 
 body {
   height: 100vh;
-  max-height: 800px;
   overflow: hidden;
   margin: 0;
   padding: 0;
@@ -91,4 +90,14 @@ a:focus {
 .social > .validation {
   width: 14px;
   height: 14px;
+}
+
+@media print, screen and (max-width: 720px) {
+  body {
+    max-height: 800px;
+  }
+
+  .links {
+    text-decoration: underline;
+  }
 }
