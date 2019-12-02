@@ -1,6 +1,7 @@
 @import url("https://rsms.me/inter/inter.css");
 html {
   font-family: "Inter", sans-serif;
+  height: 100%;
 }
 @supports (font-variation-settings: normal) {
   html {
@@ -9,7 +10,7 @@ html {
 }
 
 body {
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   margin: 0;
   padding: 0;
