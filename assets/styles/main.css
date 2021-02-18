@@ -72,13 +72,14 @@ a:focus {
 }
 
 .links {
-  text-decoration: none;
+  text-decoration: underline;
   color: white;
 }
 
+/* 
 .links:hover {
   text-decoration: underline;
-}
+} */
 
 .social {
   margin: 40px 0;
