@@ -32,7 +32,8 @@
 </head>
 <body>
     <article class="post-container">
-        <a href="/blog.html" class="back-link">&larr; All Posts</a>
+        <a href="/" class="site-header">prastutkumar.com</a>
+        <a href="/writing.html" class="back-link">&larr; All Posts</a>
 
         <!-- Post Header -->
         <header class="post-header">
@@ -81,7 +82,7 @@
 
             if (!postSlug) {
                 document.getElementById('post-content').innerHTML =
-                    '<p class="error">No post specified. <a href="/blog.html">View all posts</a></p>';
+                    '<p class="error">No post specified. <a href="/writing.html">View all posts</a></p>';
                 return;
             }
 
@@ -101,7 +102,7 @@
 
             } catch (error) {
                 document.getElementById('post-content').innerHTML =
-                    `<p class="error">Error loading post: ${error.message}. <a href="/blog.html">View all posts</a></p>`;
+                    `<p class="error">Error loading post: ${error.message}. <a href="/writing.html">View all posts</a></p>`;
             }
         })();
 
