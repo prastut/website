@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon_io/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon_io/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon_io/favicon-16x16.png" />
+    <link rel="manifest" href="/assets/favicon_io/site.webmanifest" />
+
+    <!-- Meta tags (dynamically updated by JS) -->
+    <title>Loading... - Prastut Kumar</title>
+    <meta name="description" content="" />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="" />
+    <meta property="og:title" content="" />
+    <meta property="og:description" content="" />
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:url" content="" />
+    <meta property="twitter:title" content="" />
+    <meta property="twitter:description" content="" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/styles/reset.css" />
+    <link rel="stylesheet" href="/blog/blog.css" />
+
+    <!-- Syntax highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+</head>
+<body>
+    <article class="post-container">
+        <a href="/blog.html" class="back-link">&larr; All Posts</a>
+
+        <!-- Post Header -->
+        <header class="post-header">
+            <h1 class="post-title" id="post-title">Loading...</h1>
+            <div class="post-meta">
+                <time class="post-date" id="post-date"></time>
+                <span class="meta-separator">|</span>
+                <span class="reading-time" id="header-reading-time"></span>
+            </div>
+            <div class="substack-link" id="substack-container" style="display: none;">
+                <a href="" id="substack-link" target="_blank" rel="noopener">
+                    Also available on Substack &rarr;
+                </a>
+            </div>
+        </header>
+
+        <!-- Post Content -->
+        <main class="post-content" id="post-content">
+            <div class="loading">Loading post...</div>
+        </main>
+
+        <!-- Followup Reading Section -->
+        <section class="followup-section" id="followup-section" style="display: none;">
+            <h2>Continue Reading</h2>
+            <ul class="followup-list" id="followup-list"></ul>
+        </section>
+    </article>
+
+    <!-- Fixed Footer with Reading Time -->
+    <footer class="reading-footer" id="reading-footer">
+        <div class="footer-content">
+            <span class="current-progress" id="current-progress">0%</span>
+            <span class="footer-separator">|</span>
+            <span class="time-remaining" id="time-remaining">-- min left</span>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+    <script>
+        (async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postSlug = urlParams.get('post');
+
+            if (!postSlug) {
+                document.getElementById('post-content').innerHTML =
+                    '<p class="error">No post specified. <a href="/blog.html">View all posts</a></p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/blog/${postSlug}.md`);
+                if (!response.ok) {
+                    throw new Error('Post not found');
+                }
+                const markdown = await response.text();
+
+                const { frontmatter, content } = parseFrontmatter(markdown);
+
+                updateMetaTags(frontmatter, postSlug);
+                const readingTime = frontmatter.reading_time || calculateReadingTime(content);
+                renderPost(frontmatter, content, readingTime);
+                setupReadingProgress(readingTime);
+
+            } catch (error) {
+                document.getElementById('post-content').innerHTML =
+                    `<p class="error">Error loading post: ${error.message}. <a href="/blog.html">View all posts</a></p>`;
+            }
+        })();
+
+        function parseFrontmatter(markdown) {
+            const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+            const match = markdown.match(frontmatterRegex);
+
+            if (!match) {
+                return { frontmatter: {}, content: markdown };
+            }
+
+            const frontmatter = jsyaml.load(match[1]);
+            const content = match[2].trim();
+
+            return { frontmatter, content };
+        }
+
+        function updateMetaTags(frontmatter, slug) {
+            const baseUrl = 'https://prastutkumar.com';
+            const postUrl = `${baseUrl}/blog/post.html?post=${slug}`;
+
+            document.title = `${frontmatter.title} - Prastut Kumar`;
+
+            document.querySelector('meta[name="description"]').content = frontmatter.description || '';
+            document.querySelector('meta[property="og:url"]').content = postUrl;
+            document.querySelector('meta[property="og:title"]').content = frontmatter.title;
+            document.querySelector('meta[property="og:description"]').content = frontmatter.description || '';
+            document.querySelector('meta[property="twitter:url"]').content = postUrl;
+            document.querySelector('meta[property="twitter:title"]').content = frontmatter.title;
+            document.querySelector('meta[property="twitter:description"]').content = frontmatter.description || '';
+        }
+
+        function calculateReadingTime(text) {
+            // Strip markdown syntax for more accurate word count
+            const plainText = text
+                .replace(/```[\s\S]*?```/g, '') // code blocks
+                .replace(/`[^`]*`/g, '')        // inline code
+                .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // links
+                .replace(/[#*_~>/\-]/g, '')     // markdown symbols
+                .replace(/\s+/g, ' ')           // normalize whitespace
+                .trim();
+
+            const wordCount = plainText.split(/\s+/).filter(word => word.length > 0).length;
+            const wordsPerMinute = 200;
+            const minutes = Math.ceil(wordCount / wordsPerMinute);
+            return Math.max(1, minutes); // minimum 1 minute
+        }
+
+        function renderPost(frontmatter, content, readingTime) {
+            // Title
+            document.getElementById('post-title').textContent = frontmatter.title;
+
+            // Date
+            const dateEl = document.getElementById('post-date');
+            const date = new Date(frontmatter.date);
+            dateEl.textContent = date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            dateEl.dateTime = frontmatter.date;
+
+            // Reading time in header
+            document.getElementById('header-reading-time').textContent =
+                `${readingTime} min read`;
+
+            // Substack link (if present)
+            if (frontmatter.substack_url) {
+                const container = document.getElementById('substack-container');
+                const link = document.getElementById('substack-link');
+                link.href = frontmatter.substack_url;
+                container.style.display = 'block';
+            }
+
+            // Configure marked.js with highlight.js
+            marked.setOptions({
+                highlight: function(code, lang) {
+                    if (lang && hljs.getLanguage(lang)) {
+                        return hljs.highlight(code, { language: lang }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
+                },
+                gfm: true,
+                breaks: false
+            });
+
+            // Render markdown content
+            document.getElementById('post-content').innerHTML = marked.parse(content);
+
+            // Apply syntax highlighting to code blocks
+            document.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block);
+            });
+
+            // Followup posts
+            if (frontmatter.followup && frontmatter.followup.length > 0) {
+                const section = document.getElementById('followup-section');
+                const list = document.getElementById('followup-list');
+
+                frontmatter.followup.forEach(post => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="/blog/post.html?post=${post.slug}">${post.title}</a>`;
+                    list.appendChild(li);
+                });
+
+                section.style.display = 'block';
+            }
+        }
+
+        function setupReadingProgress(totalMinutes) {
+            const footer = document.getElementById('reading-footer');
+            const progressEl = document.getElementById('current-progress');
+            const timeRemainingEl = document.getElementById('time-remaining');
+
+            function updateProgress() {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+
+                if (docHeight <= 0) {
+                    progressEl.textContent = '100%';
+                    timeRemainingEl.textContent = '0 min left';
+                    return;
+                }
+
+                const progress = Math.min(100, Math.round((scrollTop / docHeight) * 100));
+
+                progressEl.textContent = `${progress}%`;
+
+                const minutesRemaining = Math.ceil(totalMinutes * (1 - progress / 100));
+                timeRemainingEl.textContent = minutesRemaining <= 1
+                    ? '< 1 min left'
+                    : `${minutesRemaining} min left`;
+
+                // Show/hide footer based on scroll
+                if (scrollTop > 100) {
+                    footer.classList.add('visible');
+                } else {
+                    footer.classList.remove('visible');
+                }
+            }
+
+            window.addEventListener('scroll', updateProgress);
+            updateProgress();
+        }
+    </script>
+</body>
+</html>
